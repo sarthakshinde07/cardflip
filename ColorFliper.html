@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>ColorCardFliper</title>
+	<style>
+		html{
+			background-color: black;
+			color:white;
+		}
+		#parent{
+			height: 90vw;
+			width:90vw;
+			margin-inline:auto;
+			border: 2px yellow solid;
+			border-radius:5%;
+			background-color: black;
+			
+			display:grid;
+			grid-template: repeat(var(--i),1fr) / repeat(var(--i),1fr);
+			grid-gap:4px;
+			padding:4px;
+		}
+		.fliped{
+			background-color: yellow!important;
+		    transform: rotateY(180deg);
+		}
+		.card{
+			display:inline-block;
+			border-radius:10%;
+			background-color: grey;
+    		transition: transform 0.3s, background-color 0.3s;
+    		transform-style: preserve-3d;
+			
+		}
+		.ring{
+			width:50px;
+			margin-inline:auto;
+			margin-block:5px;
+			text-align: center;
+			border:2px yellow solid;
+			border-radius:40px;
+			padding:2px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Fliper 🐬</h1><hr>
+	<div class="ring" id="counter">0</div>
+	<div id="parent">
+		<!--
+		<div class="card svs18.7.24"></div>
+		-->
+	</div>
+	<div id="level" class="ring">👑</div>
+	<hr>
+	
+	<script type="text/javascript" charset="utf-8">
+	
+		var n=1,setCards=0, moves=0;
+		generateCards(n);
+		
+		//Generates Cards in parent div
+		function generateCards(m){
+			setCards=0;
+			n=parseInt(m);
+			const parent = document.getElementById("parent");
+			parent.innerHTML="";
+			parent.setAttribute("style","--i:"+n+";");
+			
+			for(var i=1;i<=(n*n);i++){
+				parent.innerHTML+='<div class="card" id="c'+i+'">'+i+'</div>';
+			}
+			addEvents();
+		}
+		
+		function addEvents(){
+			let cards=document.getElementsByClassName("card");
+			for(var i=0;i<cards.length;i++){
+				cards[i].addEventListener("click", function(){flipSide(this.id)});
+			}
+		}
+		
+		//single flip on passed id and update counter(setCards)
+		function flip(d){
+			if(document.getElementById(d).classList.toggle("fliped"))
+			setCards++;
+			else
+			setCards--;
+			
+	/* Observation 
+		classList.toggle() return true when it adds class and false when it removes it.
+		This can be used to count the set and unset cards.
+	*/
+		}
+		
+		//self+side cards flip caller function
+		function flipSide(i){
+		//id is expected in i
+			cardSound();
+			moves++;
+			document.getElementById("counter").innerHTML=moves;
+			
+			//idNum is number part from id string
+			let idNum=parseInt(i.slice(1));
+			
+			//Self flip
+			flip(i);
+			
+			//Case: dont flip previous card if clicked card is first in the row
+			// 0/n == 0%n == 0
+			if((idNum-1)%n)
+			flip("c"+(idNum-1));
+			
+			//Case: dont flip next card if clicked card is last in the row
+			if(idNum%n)
+			flip("c"+(idNum+1));
+			
+			//Case: dont flip above card if clicked card is in 1st row
+			if(idNum>n)
+			flip("c"+(idNum-n));
+			
+			//Case: dont flip below card if clicked card is in last row
+			if(idNum<=n*(n-1))
+			flip("c"+(idNum+n));
+			
+			check();
+		}
+		
+		function check(){
+			if(setCards==n*n){
+				n++;
+				generateCards(n);
+				document.getElementById("level").innerHTML="👑 "+(n-1);
+			}
+		}
+		
+		var audio = new Audio("cardFlip.mp3");
+
+		function cardSound() {
+			audio.pause();
+			audio.currentTime = 0;
+  			audio.play();
+		}
+	</script>
+</body>
+</html>
