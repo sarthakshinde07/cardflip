@@ -6,6 +6,9 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>ColorCardFliper</title>
 	<style>
+	:root{
+		--bgcolor: yellow;
+	}
 		html{
 			background-color: black;
 			color:white;
@@ -14,7 +17,7 @@
 			height: 90vw;
 			width:90vw;
 			margin-inline:auto;
-			border: 2px yellow solid;
+			border: 2px var(--bgcolor) solid;
 			border-radius:5%;
 			background-color: black;
 			
@@ -22,12 +25,19 @@
 			grid-template: repeat(var(--i),1fr) / repeat(var(--i),1fr);
 			grid-gap:4px;
 			padding:4px;
+			overflow:hidden;
+		}
+		@media (min-aspect-ratio: 1/1){
+			#parent{
+				height:75vh;
+				width:75vh;
+			}
 		}
 		.fliped{
-			background-color: yellow!important;
+			background-color: var(--bgcolor)!important;
 		    transform: rotateY(180deg);
 		}
-		.card{
+		#parent div{
 			display:inline-block;
 			border-radius:10%;
 			background-color: grey;
@@ -35,32 +45,93 @@
     		transform-style: preserve-3d;
 			
 		}
-		.ring{
+		#counter,#level{
 			width:50px;
 			margin-inline:auto;
 			margin-block:5px;
 			text-align: center;
-			border:2px yellow solid;
+			border:2px var(--bgcolor) solid;
 			border-radius:40px;
 			padding:2px;
+			display: block;
+		}
+		#level{display:inline-block;margin-inline:5px}
+		.btn{
+			width:30%;
+			padding:8px ;
+			display: inline-block;
+			background-color: var(--bgcolor);
+			border-radius: 10px;
+			color:black;
+			font-family:Monospace;
+			font-weight: bold;
+		}
+		.display-none{
+			display:none;
+			/*
+			text-align: right;
+			*/
 		}
 	</style>
 </head>
 <body>
 	<h1>Fliper 🐬</h1><hr>
-	<div class="ring" id="counter">0</div>
+	<div id="counter">0</div>
 	<div id="parent">
 		<!--
 		<div class="card svs18.7.24"></div>
 		-->
 	</div>
-	<div id="level" class="ring">👑</div>
+	<div style="text-align:center;">
+		<span class="btn left" onClick="document.getElementById('settings').classList.toggle('display-none');">Settings</span>
+		<div id="level">👑</div>
+		<span class="btn right" onClick="generateCards(n)">Restart</span>
+	</div>
 	<hr>
 	
-	<script type="text/javascript" charset="utf-8">
+	<div id="settings" class="display-none">
+		Sound :
+		<input type="checkbox" onInput="setCookies();" checked id="sound" /><br>
+		
+		Numbered Boxes:
+		<input type="checkbox" onInput="setCookies();"  id="numbox" /><br>
+		
+		Color :
+		<input type="color" onInput="setCookies();" value="#ffff00" id="color" /><br>
+	</div>
 	
+	<script type="text/javascript" charset="utf-8">
+		
 		var n=1,setCards=0, moves=0;
 		generateCards(n);
+		
+		var mov="";
+		
+		
+	//========= cookie 🍪 ===========
+		function id(a){return document.getElementById(a)}
+		
+		var numbered=false,sound=true,cookies,cookieArray;
+		
+		
+		if(document.cookies==undefined){
+			document.cookies="c1=false;c2=true;c3=yellow;";
+		} else{loadCookies();}
+		
+		function loadCookies(){
+			cookies=document.cookies;
+			cookieArray=cookies.split(';');
+			
+			numbered=((cookieArray[0].slice(3))=="true")
+			sound=((cookieArray[1].slice(3))=="true");
+			
+			document.querySelector(':root').style.setProperty('--bgcolor', cookieArray[2].slice(3));
+			
+		}
+		function setCookies(){
+				document.cookies="c1="+id('numbox').checked+";c2="+id('sound').checked+";c3="+color.value+";";
+				loadCookies();
+		}
 		
 		//Generates Cards in parent div
 		function generateCards(m){
@@ -71,7 +142,7 @@
 			parent.setAttribute("style","--i:"+n+";");
 			
 			for(var i=1;i<=(n*n);i++){
-				parent.innerHTML+='<div class="card" id="c'+i+'">'+i+'</div>';
+				parent.innerHTML+='<div class="card" id="c'+i+'">'+(numbered?(i+'</div>'):'</div>');
 			}
 			addEvents();
 		}
@@ -83,7 +154,7 @@
 			}
 		}
 		
-		//single flip on passed id and update counter(setCards)
+		//single flip on passed id and update counter (setCards)
 		function flip(d){
 			if(document.getElementById(d).classList.toggle("fliped"))
 			setCards++;
@@ -99,6 +170,7 @@
 		//self+side cards flip caller function
 		function flipSide(i){
 		//id is expected in i
+			mov= mov+","+i.slice(1);
 			cardSound();
 			moves++;
 			document.getElementById("counter").innerHTML=moves;
@@ -132,6 +204,8 @@
 		function check(){
 			if(setCards==n*n){
 				n++;
+            navigator.clipboard.writeText(mov);
+            mov="";
 				generateCards(n);
 				document.getElementById("level").innerHTML="👑 "+(n-1);
 			}
@@ -140,10 +214,12 @@
 		var audio = new Audio("cardFlip.mp3");
 
 		function cardSound() {
+			if(!sound) return;
 			audio.pause();
 			audio.currentTime = 0;
   			audio.play();
 		}
+		
 	</script>
 </body>
-</html>
+		</html>
