@@ -6,9 +6,10 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>ColorCardFliper</title>
 	<style>
-	:root{
-		--bgcolor: yellow;
-	}
+        	:root{
+		        --bgcolor: yellow;
+	        	--numbered:none;
+        	}
 		html{
 			background-color: black;
 			color:white;
@@ -66,11 +67,11 @@
 			font-family:Monospace;
 			font-weight: bold;
 		}
-		.display-none{
+		div b {
+			display:var(--numbered);
+		}
+		.options{
 			display:none;
-			/*
-			text-align: right;
-			*/
 		}
 	</style>
 </head>
@@ -83,69 +84,58 @@
 		-->
 	</div>
 	<div style="text-align:center;">
-		<span class="btn left" onClick="document.getElementById('settings').classList.toggle('display-none');">Settings</span>
+		<span class="btn left" onClick="document.getElementById('settings').classList.toggle('options');">Settings</span>
 		<div id="level">👑</div>
 		<span class="btn right" onClick="generateCards(n)">Restart</span>
 	</div>
 	<hr>
 	
-	<div id="settings" class="display-none">
+	<div id="settings" class="options">
 		Sound :
-		<input type="checkbox" onInput="setCookies();" checked id="sound" /><br>
+		<input type="checkbox" onInput="updateSettings();" checked id="sound" /><br>
 		
 		Numbered Boxes:
-		<input type="checkbox" onInput="setCookies();"  id="numbox" /><br>
+		<input type="checkbox" onInput="updateSettings();"  id="numbox" /><br>
 		
 		Color :
-		<input type="color" onInput="setCookies();" value="#ffff00" id="color" /><br>
+		<input type="color" onInput="updateSettings();" value="#ffff00" id="color" /><br>
 	</div>
 	
 	<script type="text/javascript" charset="utf-8">
 		
-		var n=1,setCards=0, moves=0;
+		var n=1,setCards=0, moves=0, mov="";
+		var disco=["#ffff00","#ffff00","#ffff00","#00ffff","#00ffff","#000","#47c8ff"];
 		generateCards(n);
 		
-		var mov="";
+	//========= 🍪🍰🎂🍩 ===========
+	
+		function id(a){return document.getElementById(a);}
 		
 		
-	//========= cookie 🍪 ===========
-		function id(a){return document.getElementById(a)}
-		
-		var numbered=false,sound=true,cookies,cookieArray;
-		
-		
-		if(document.cookies==undefined){
-			document.cookies="c1=false;c2=true;c3=yellow;";
-		} else{loadCookies();}
-		
-		function loadCookies(){
-			cookies=document.cookies;
-			cookieArray=cookies.split(';');
-			
-			numbered=((cookieArray[0].slice(3))=="true")
-			sound=((cookieArray[1].slice(3))=="true");
-			
-			document.querySelector(':root').style.setProperty('--bgcolor', cookieArray[2].slice(3));
-			
-		}
-		function setCookies(){
-				document.cookies="c1="+id('numbox').checked+";c2="+id('sound').checked+";c3="+color.value+";";
-				loadCookies();
+		function updateSettings(){
+			document.querySelector(':root').style.setProperty('--numbered', id("numbox").checked?"block":"none");
+			document.querySelector(':root').style.setProperty('--bgcolor', id("color").value);
 		}
 		
-		//Generates Cards in parent div
+	//Generates Cards in parent div
 		function generateCards(m){
 			setCards=0;
 			n=parseInt(m);
+			if(n<8){
+				id("color").value=disco[n-1];
+				document.querySelector(':root').style.setProperty('--bgcolor', disco[n-1]);
+				
+			}
 			const parent = document.getElementById("parent");
 			parent.innerHTML="";
 			parent.setAttribute("style","--i:"+n+";");
 			
 			for(var i=1;i<=(n*n);i++){
-				parent.innerHTML+='<div class="card" id="c'+i+'">'+(numbered?(i+'</div>'):'</div>');
+				parent.innerHTML+='<div class="card" id="c'+i+'"><b>'+i+'</b></div>';
 			}
 			addEvents();
 		}
+		
 		
 		function addEvents(){
 			let cards=document.getElementsByClassName("card");
@@ -154,28 +144,31 @@
 			}
 		}
 		
-		//single flip on passed id and update counter (setCards)
+		
+	//single flip on passed id and update counter (setCards)
 		function flip(d){
 			if(document.getElementById(d).classList.toggle("fliped"))
 			setCards++;
 			else
 			setCards--;
 			
-	/* Observation 
-		classList.toggle() return true when it adds class and false when it removes it.
-		This can be used to count the set and unset cards.
-	*/
+	/*  Observation 
+	 *	classList.toggle() return true when
+	 *  it adds class and false when it removes it.
+	 *  This can be used to count the set and unset cards.
+	 */
 		}
 		
-		//self+side cards flip caller function
+		
+	//self+side cards flip caller function
+	//takes id in i
 		function flipSide(i){
-		//id is expected in i
-			mov= mov+","+i.slice(1);
-			cardSound();
+		//	mov= mov+","+i.slice(1);
+			playSound();
 			moves++;
 			document.getElementById("counter").innerHTML=moves;
 			
-			//idNum is number part from id string
+			//idNum is integer part from id
 			let idNum=parseInt(i.slice(1));
 			
 			//Self flip
@@ -204,17 +197,16 @@
 		function check(){
 			if(setCards==n*n){
 				n++;
-            navigator.clipboard.writeText(mov);
-            mov="";
+            //	navigator.clipboard.writeText(mov);mov="";
 				generateCards(n);
 				document.getElementById("level").innerHTML="👑 "+(n-1);
 			}
 		}
 		
+		
 		var audio = new Audio("cardFlip.mp3");
-
-		function cardSound() {
-			if(!sound) return;
+		function playSound() {
+			if(!id("sound").checked) return;
 			audio.pause();
 			audio.currentTime = 0;
   			audio.play();
@@ -222,4 +214,4 @@
 		
 	</script>
 </body>
-		</html>
+	</html>
